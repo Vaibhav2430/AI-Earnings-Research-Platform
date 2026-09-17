@@ -2,7 +2,7 @@
 
 An AI-powered web app that turns a company search into an earnings research report and a source-backed conversation.
 
-## What we are building
+## What am I building
 
 The goal is simple: search for a company by name or ticker, describe what you want to know, and get a report based on relevant earnings information. Users should not need to find transcripts, download filings, or upload documents themselves.
 

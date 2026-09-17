@@ -79,7 +79,67 @@ Start with selected US public companies and their latest available earnings mate
 
 ## Project status
 
-This repository currently documents the project vision. The application, data pipeline, and deployment have not been implemented yet. The features above describe the intended product.
+The first data collection prototype is implemented as a Python command-line tool. It resolves a ticker using the SEC company directory, downloads the latest available 10-K and 10-Q from recent submissions, and inspects Item 2.02 8-K filings for earnings release exhibits. The web application, AI reports, chat, and deployment are planned features.
+
+## Run the collector
+
+Requires Python 3.11 or newer. No third-party packages or AI API keys are required.
+
+The SEC requires automated requests to identify the application and a contact. Set your own real contact email locally:
+
+```sh
+export SEC_USER_AGENT="AI Earnings Research your-email@example.com"
+python3 -m earnings_collector AAPL
+```
+
+If you have saved the setting in the ignored `.env` file, load it first:
+
+```sh
+set -a
+source .env
+set +a
+python3 -m earnings_collector AAPL
+```
+
+The CLI does not automatically load `.env`. Never commit your contact configuration. The request header is sent to the SEC, but is not included in output manifests.
+
+If Python reports `CERTIFICATE_VERIFY_FAILED` on macOS, configure a trusted certificate bundle rather than disabling certificate checks. For a Mac with `/etc/ssl/cert.pem`, you can export `SSL_CERT_FILE=/etc/ssl/cert.pem` or add that setting to your local `.env`.
+
+Optional arguments:
+
+```sh
+python3 -m earnings_collector AAPL --output data --max-earnings-filings 8
+python3 -m earnings_collector AAPL --refresh
+```
+
+The collector stores its output under `data/AAPL/`:
+
+- `manifest.json`: Company identity, source URLs, filing dates, period metadata, checksums, extraction status, and coverage warnings.
+- `submissions.json`: The SEC discovery response used by the run.
+- One folder per accession number containing original documents and extracted `.txt` files. Inspected earnings filing indexes are also preserved.
+
+Archived document downloads are cached under `data/.cache/`; discovery metadata is fetched on every run. `--refresh` bypasses the document cache. Repeated runs replace the current manifest and may retain older document folders. All downloaded data is ignored by Git.
+
+Exit codes: `0` means the scoped collection completed, `2` means partial coverage with a saved manifest, and `1` means collection failed before completion. Argument errors also use exit code `2` and print usage without a manifest.
+
+## Current collection limits
+
+- Discovery searches recent SEC submissions only, not older history shards.
+- The latest 10-K, latest 10-Q, and earnings exhibits can cover different periods. They are not represented as a single matched quarter.
+- Earnings release classification uses a conservative text heuristic. Matches are labeled `earnings_release_candidate`, not verified reports.
+- An 8-K report date is an event date. Earnings exhibit period ends remain unset until they can be validated.
+- HTML and text are extracted. Other exhibits are saved as originals with an unsupported extraction status. Table text retains basic row and cell separation; it is not a structured financial dataset.
+- Amended filings, transcripts, investor relations fallbacks, and financial metric normalization are not implemented yet.
+- SEC access denials and missing documents are reported explicitly. The collector does not bypass access restrictions.
+- Requests are paced at no more than four per second per process, with bounded retries for transient failures. Run one collector process at a time to avoid multiplying request rates.
+
+## Tests
+
+```sh
+python3 -m unittest discover -s tests -v
+```
+
+The tests use synthetic SEC responses and require no network access. GitHub Actions runs the suite on pushes and pull requests. A live collection is a separate integration check.
 
 ## What this project demonstrates
 

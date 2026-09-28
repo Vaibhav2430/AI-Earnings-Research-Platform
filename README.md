@@ -133,6 +133,31 @@ Exit codes: `0` means the scoped collection completed, `2` means partial coverag
 - SEC access denials and missing documents are reported explicitly. The collector does not bypass access restrictions.
 - Requests are paced at no more than four per second per process, with bounded retries for transient failures. Run one collector process at a time to avoid multiplying request rates.
 
+## Chunk documents for retrieval
+
+After collecting a company, turn its extracted text into passages:
+
+```sh
+python3 -m earnings_collector.chunking AAPL
+python3 -m earnings_collector.chunking AAPL --data-dir data --max-chars 2400
+```
+
+This step runs locally without a network connection, contact configuration, or API key. It reads only documents listed in the company's current `manifest.json` and writes `data/AAPL/chunks.json`. It does not create embeddings or generate AI answers yet.
+
+Each passage includes:
+
+- A stable chunk ID and document ID.
+- The exact extracted source text, with company, ticker, CIK, document type, accession number, and source URL.
+- Filing date, SEC report date, and reporting period end when available. Unknown periods remain null.
+- Original-document and extracted-text checksums, plus original file locations.
+- Zero-based character offsets with an exclusive end, and one-based inclusive line numbers in the extracted text file. These are not PDF page numbers or HTML offsets.
+
+The default maximum is 2,400 Unicode characters, not tokens. The chunker keeps lines and table rows intact when they fit, and uses a heading heuristic for uppercase headings and SEC item/part headings. It groups detected headings with following content where possible. Oversized lines are split at whitespace or the character limit and flagged with `oversized_line_split`. It does not reconstruct HTML sections, carry table headers forward, or guarantee complete tables in one passage.
+
+Passages are consecutive and have no overlap. Source text can be reconstructed by joining a document's chunks in order. Repeated runs replace the output atomically rather than appending duplicates. Identical input and settings produce identical output and IDs; changing source text, chunk size, or chunker version changes the affected IDs. A future indexer must remove obsolete IDs when replacing a document.
+
+Missing, unsupported, empty, unsafe, or duplicate document entries are reported in output warnings. Collection warnings remain available separately, so successful chunking does not imply complete earnings coverage. Exit code `0` means chunking completed, `2` means partial or empty output, and `1` means failure. Argument errors also use `2` without writing output.
+
 ## Tests
 
 ```sh

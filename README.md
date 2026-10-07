@@ -69,7 +69,7 @@ The initial stack is still being finalized:
 | Data collection and processing | Python |
 | Retrieval and orchestration | LangChain or LlamaIndex |
 | Embeddings and answer generation | OpenAI API |
-| Vector storage | Chroma for a local prototype or Pinecone for a hosted service |
+| Vector storage | SQLite with exact cosine search in the prototype; a hosted vector database can follow |
 | Web interface | Streamlit for the initial prototype |
 | Alternative web deployment | A custom frontend hosted on Vercel with a Python backend |
 
@@ -157,6 +157,50 @@ The default maximum is 2,400 Unicode characters, not tokens. The chunker keeps l
 Passages are consecutive and have no overlap. Source text can be reconstructed by joining a document's chunks in order. Repeated runs replace the output atomically rather than appending duplicates. Identical input and settings produce identical output and IDs; changing source text, chunk size, or chunker version changes the affected IDs. A future indexer must remove obsolete IDs when replacing a document.
 
 Missing, unsupported, empty, unsafe, or duplicate document entries are reported in output warnings. Collection warnings remain available separately, so successful chunking does not imply complete earnings coverage. Exit code `0` means chunking completed, `2` means partial or empty output, and `1` means failure. Argument errors also use `2` without writing output.
+
+## Embed and search passages
+
+The embedding client uses OpenAI `text-embedding-3-small` with 1,536 dimensions. Vectors and passage metadata are stored in `data/AAPL/index.sqlite3`. This prototype uses exact cosine search over locally stored vectors, without a database server or additional Python dependencies. See the [official embedding documentation](https://developers.openai.com/api/docs/guides/embeddings).
+
+First, validate the passages and inspect the work required without API calls or database writes:
+
+```sh
+python3 -m earnings_collector.indexing index AAPL --dry-run
+```
+
+For live indexing, put `OPENAI_API_KEY="your-key"` in your ignored local `.env` file. Use a real API key privately, not in chat, source code, or GitHub. Load the configuration and run:
+
+```sh
+set -a
+source .env
+set +a
+python3 -m earnings_collector.indexing index AAPL
+python3 -m earnings_collector.indexing search AAPL "What drove revenue growth?" --top-k 5
+```
+
+Indexing sends passage text to OpenAI and search sends the question to OpenAI to create a query embedding. API usage is billed to your API account. Source metadata stays in the local database. Dry-run byte counts are not token counts or cost estimates.
+
+Search outputs JSON containing ranked passages, cosine similarity scores, and all original citation metadata. Scores measure similarity, not factual confidence. This step returns evidence, not a generated answer, and does not infer which quarter the question means. Filter explicitly where needed:
+
+```sh
+python3 -m earnings_collector.indexing search AAPL "What were the main risks?" --form 10-K --top-k 3
+python3 -m earnings_collector.indexing search AAPL "Revenue growth" --period-end 2026-06-27
+```
+
+Period filters require an exact known reporting period end. Exhibits whose periods are unknown do not match. Results retain collection and chunking warnings. Both commands accept `--data-dir` for a custom collection directory.
+
+Indexing behavior:
+
+- Embeddings are cached by provider, model, dimensions, and passage text hash. An unchanged rerun does not request embeddings again.
+- Successful batches are cached even if a later request fails, allowing the next run to resume. The searchable snapshot changes only after all vectors are ready.
+- Refreshing replaces all active passages for that company, including source metadata, and removes stale passages from search. Older cached vectors remain available for reuse.
+- Search requires the current `chunks.json` to match the indexed snapshot. After recollecting documents, rerun chunking and indexing in that order.
+- Requests use batches of at most 16 passages and bounded retries for transient failures. Inputs are conservatively capped at 8,000 UTF-8 bytes each. Oversized text is rejected before requests; rechunk with a smaller `--max-chars` value.
+- Run one index writer per company at a time. Exact search loads that company's vectors into memory and is intended for a small prototype, not a large production corpus.
+
+Both commands return exit code `0` on success and `1` on operational failure; argument errors use `2`. Indexing may successfully index partial source coverage, which remains explicit in search output.
+
+The API transport, cache, refresh, filtering, and ranking are tested with synthetic embedding responses. Live indexing and semantic retrieval quality require an API key and a separate integration check. No live embedding run is implied by a successful dry run.
 
 ## Tests
 

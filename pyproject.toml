@@ -12,6 +12,7 @@ dependencies = []
 [project.scripts]
 earnings-collect = "earnings_collector.__main__:main"
 earnings-chunk = "earnings_collector.chunking:main"
+earnings-index = "earnings_collector.indexing:main"
 
 [tool.setuptools.packages.find]
 include = ["earnings_collector*"]

@@ -1,13 +1,13 @@
-import io
 import json
 import sqlite3
 import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import patch
-from urllib.error import HTTPError
+from unittest.mock import MagicMock
+from types import SimpleNamespace
 
-from earnings_collector.embeddings import IndexError, OpenAIEmbedder, unit_vector
+from earnings_collector.embeddings import IndexError, LocalEmbedder, unit_vector, token_windows
 from earnings_collector.indexing import index_company, search_company
 
 
@@ -149,44 +149,48 @@ class IndexTests(unittest.TestCase):
         self.assertEqual(len(self.search(top_k=50)['results']), 20)
 
 
-class TransportTests(unittest.TestCase):
-    def client(self):
-        client = OpenAIEmbedder('test-secret')
-        client.dimensions = 2
-        return client
+class LocalEmbeddingTests(unittest.TestCase):
+    def test_inference_loads_cached_model_only(self):
+        encoder = MagicMock()
+        encoder.get_embedding_dimension.return_value = 384
+        constructor = MagicMock(return_value=encoder)
+        with patch.dict('sys.modules', {'sentence_transformers': SimpleNamespace(SentenceTransformer=constructor)}):
+            client = LocalEmbedder()
+            self.assertIs(client.load(), encoder)
+            self.assertIs(client.load(), encoder)
+            self.assertEqual(constructor.call_count, 1)
+            self.assertTrue(constructor.call_args.kwargs['local_files_only'])
+            self.assertFalse(constructor.call_args.kwargs['trust_remote_code'])
 
-    def response(self, data):
-        return io.BytesIO(json.dumps({'model': 'text-embedding-3-small', 'data': data}).encode())
+    def test_download_is_explicit(self):
+        encoder = MagicMock()
+        encoder.get_embedding_dimension.return_value = 384
+        constructor = MagicMock(return_value=encoder)
+        with patch.dict('sys.modules', {'sentence_transformers': SimpleNamespace(SentenceTransformer=constructor)}):
+            LocalEmbedder().load(download=True)
+            self.assertFalse(constructor.call_args.kwargs['local_files_only'])
 
-    def test_response_order_and_payload(self):
-        response = self.response([{'index': 1, 'embedding': [0, 2]}, {'index': 0, 'embedding': [2, 0]}])
-        with patch('earnings_collector.embeddings.urlopen', return_value=response) as opener:
-            self.assertEqual(self.client().embed(['one', 'two']), [[1, 0], [0, 1]])
-            request = opener.call_args.args[0]
-            self.assertEqual(json.loads(request.data)['encoding_format'], 'float')
+    def test_windows_cover_all_tokens(self):
+        ids = list(range(700))
+        windows = token_windows(ids, 254)
+        self.assertEqual([x for w in windows for x in w], ids)
+        self.assertEqual([len(w) for w in windows], [254, 254, 192])
 
-    def test_bad_vectors_and_duplicate_indices(self):
+    def test_invalid_vectors(self):
         for vector in ([0, 0], [float('nan'), 1], [1], ['1', 2]):
             with self.assertRaises(IndexError):
                 unit_vector(vector, 2)
-        with patch('earnings_collector.embeddings.urlopen', return_value=self.response([
-            {'index': 0, 'embedding': [1, 0]}, {'index': 0, 'embedding': [0, 1]}])):
-            with self.assertRaises(IndexError):
-                self.client().embed(['one', 'two'])
 
-    def test_missing_key_never_calls_api(self):
-        with patch('earnings_collector.embeddings.urlopen') as opener:
-            with self.assertRaisesRegex(IndexError, 'OPENAI_API_KEY'):
-                OpenAIEmbedder('').embed(['one'])
-            opener.assert_not_called()
+    def test_default_provider_is_local(self):
+        self.assertEqual(LocalEmbedder().provider, 'local-sentence-transformers')
+        self.assertEqual(LocalEmbedder().dimensions, 384)
 
-    def test_retries_transient_errors_but_not_auth(self):
-        for status, calls in [(429, 3), (503, 3), (401, 1)]:
-            with patch('earnings_collector.embeddings.urlopen', side_effect=HTTPError('url', status, 'failure', {}, None)) as opener, patch('earnings_collector.embeddings.time.sleep'):
-                with self.assertRaises(IndexError) as error:
-                    self.client().embed(['one'])
-                self.assertNotIn('test-secret', str(error.exception))
-                self.assertEqual(opener.call_count, calls)
+    def test_input_validation_precedes_model_load(self):
+        with patch.object(LocalEmbedder, 'load') as load:
+            for texts in ([], [''], ['x' * 8001]):
+                with self.assertRaises(IndexError):
+                    LocalEmbedder().embed(texts)
+            load.assert_not_called()
 
 
 if __name__ == '__main__':

@@ -9,6 +9,9 @@ description = "Automatically collect SEC earnings materials with source provenan
 requires-python = ">=3.11"
 dependencies = []
 
+[project.optional-dependencies]
+local = ["sentence-transformers>=5.1,<6", "transformers>=4.41,<5"]
+
 [project.scripts]
 earnings-collect = "earnings_collector.__main__:main"
 earnings-chunk = "earnings_collector.chunking:main"

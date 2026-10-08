@@ -8,7 +8,7 @@ import sys
 from contextlib import closing
 from pathlib import Path
 
-from .embeddings import IndexError, OpenAIEmbedder, unit_vector, validate_text
+from .embeddings import IndexError, LocalEmbedder, unit_vector, validate_text
 
 
 def sha(data):
@@ -61,7 +61,7 @@ def initialize(db):
 
 def index_company(ticker, data_dir=Path('data'), embedder=None, dry_run=False):
     root, payload, fingerprint = load_chunks(ticker, data_dir)
-    embedder = embedder or OpenAIEmbedder()
+    embedder = embedder or LocalEmbedder(Path(data_dir) / '.models')
     chunks = payload['chunks']
     path = root / 'index.sqlite3'
     settings = {'provider': embedder.provider, 'model': embedder.model, 'dimensions': embedder.dimensions}
@@ -83,7 +83,7 @@ def index_company(ticker, data_dir=Path('data'), embedder=None, dry_run=False):
     if dry_run:
         return summary
     # Successful batches are cached separately. A later failed batch leaves the
-    # previous searchable snapshot intact and can resume without paying twice.
+    # previous searchable snapshot intact and can resume without repeating inference.
     with closing(sqlite3.connect(path)) as db:
         initialize(db)
         for start in range(0, len(missing), 16):
@@ -118,7 +118,7 @@ def search_company(ticker, query, data_dir=Path('data'), top_k=5, form=None, per
     path = root / 'index.sqlite3'
     if not path.exists():
         raise IndexError('No index exists for this company. Run the index command first.')
-    embedder = embedder or OpenAIEmbedder()
+    embedder = embedder or LocalEmbedder(Path(data_dir) / '.models')
     with closing(sqlite3.connect(path.resolve().as_uri() + '?mode=ro', uri=True)) as db:
         # Read metadata and passages from one consistent SQLite snapshot.
         db.execute('BEGIN')
@@ -158,6 +158,8 @@ def search_company(ticker, query, data_dir=Path('data'), top_k=5, form=None, per
 def main():
     parser = argparse.ArgumentParser(description='Embed passages and search a local SQLite index.')
     commands = parser.add_subparsers(dest='command', required=True)
+    download = commands.add_parser('download-model', help='Download the pinned local model once')
+    download.add_argument('--data-dir', type=Path, default=Path('data'))
     index = commands.add_parser('index', help='Create or refresh a company index')
     index.add_argument('--dry-run', action='store_true', help='Validate input and show uncached work without API calls or database writes')
     search = commands.add_parser('search', help='Return relevant passages, not a generated answer')
@@ -170,7 +172,11 @@ def main():
     search.add_argument('query')
     args = parser.parse_args()
     try:
-        if args.command == 'index':
+        if args.command == 'download-model':
+            embedder = LocalEmbedder(args.data_dir / '.models')
+            embedder.load(download=True)
+            result = {'model': embedder.model, 'cache_dir': str(embedder.cache_dir.resolve()), 'status': 'ready'}
+        elif args.command == 'index':
             result = index_company(args.ticker, args.data_dir, dry_run=args.dry_run)
         else:
             result = search_company(args.ticker, args.query, args.data_dir, args.top_k, args.form, args.period_end)

@@ -68,7 +68,8 @@ The initial stack is still being finalized:
 | --- | --- |
 | Data collection and processing | Python |
 | Retrieval and orchestration | LangChain or LlamaIndex |
-| Embeddings and answer generation | OpenAI API |
+| Embeddings | Local all-MiniLM-L6-v2 model |
+| Answer generation | Local language model planned |
 | Vector storage | SQLite with exact cosine search in the prototype; a hosted vector database can follow |
 | Web interface | Streamlit for the initial prototype |
 | Alternative web deployment | A custom frontend hosted on Vercel with a Python backend |
@@ -158,49 +159,53 @@ Passages are consecutive and have no overlap. Source text can be reconstructed b
 
 Missing, unsupported, empty, unsafe, or duplicate document entries are reported in output warnings. Collection warnings remain available separately, so successful chunking does not imply complete earnings coverage. Exit code `0` means chunking completed, `2` means partial or empty output, and `1` means failure. Argument errors also use `2` without writing output.
 
-## Embed and search passages
+## Embed and search passages locally
 
-The embedding client uses OpenAI `text-embedding-3-small` with 1,536 dimensions. Vectors and passage metadata are stored in `data/AAPL/index.sqlite3`. This prototype uses exact cosine search over locally stored vectors, without a database server or additional Python dependencies. See the [official embedding documentation](https://developers.openai.com/api/docs/guides/embeddings).
+Indexing and search run on your computer with `sentence-transformers/all-MiniLM-L6-v2`, a 384-dimensional embedding model. No API key or paid API is used. SQLite stores vectors and source metadata in `data/AAPL/index.sqlite3`.
 
-First, validate the passages and inspect the work required without API calls or database writes:
-
-```sh
-python3 -m earnings_collector.indexing index AAPL --dry-run
-```
-
-For live indexing, put `OPENAI_API_KEY="your-key"` in your ignored local `.env` file. Use a real API key privately, not in chat, source code, or GitHub. Load the configuration and run:
+Install the local dependencies in a virtual environment, then download the model once:
 
 ```sh
-set -a
-source .env
-set +a
-python3 -m earnings_collector.indexing index AAPL
-python3 -m earnings_collector.indexing search AAPL "What drove revenue growth?" --top-k 5
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install -e ".[local]"
+python -m earnings_collector.indexing download-model
 ```
 
-Indexing sends passage text to OpenAI and search sends the question to OpenAI to create a query embedding. API usage is billed to your API account. Source metadata stays in the local database. Dry-run byte counts are not token counts or cost estimates.
-
-Search outputs JSON containing ranked passages, cosine similarity scores, and all original citation metadata. Scores measure similarity, not factual confidence. This step returns evidence, not a generated answer, and does not infer which quarter the question means. Filter explicitly where needed:
+The download command retrieves a pinned model revision from Hugging Face into `data/.models/`. This directory and `.venv` are ignored by Git. Indexing and search load only cached model files and do not send passage text or questions to an external service. SEC document collection still needs internet access.
 
 ```sh
-python3 -m earnings_collector.indexing search AAPL "What were the main risks?" --form 10-K --top-k 3
-python3 -m earnings_collector.indexing search AAPL "Revenue growth" --period-end 2026-06-27
+source .venv/bin/activate
+python -m earnings_collector.indexing index AAPL --dry-run
+python -m earnings_collector.indexing index AAPL
+python -m earnings_collector.indexing search AAPL "What drove revenue growth?" --top-k 5
 ```
 
-Period filters require an exact known reporting period end. Exhibits whose periods are unknown do not match. Results retain collection and chunking warnings. Both commands accept `--data-dir` for a custom collection directory.
+Dry runs validate passages and inspect cached work without loading the model or writing the database. Rerunning indexing reuses unchanged embeddings. Old OpenAI vectors, if present, are not reused: the local model gets its own cache entries, and a successful index run replaces the searchable snapshot. There is no automatic fallback to a paid provider.
 
-Indexing behavior:
+Search returns ranked passages, cosine similarity scores, original source metadata, and collection warnings. It does not generate an answer. Scores measure similarity, not factual confidence, and search does not infer which reporting quarter you mean. Use explicit filters where needed:
 
-- Embeddings are cached by provider, model, dimensions, and passage text hash. An unchanged rerun does not request embeddings again.
-- Successful batches are cached even if a later request fails, allowing the next run to resume. The searchable snapshot changes only after all vectors are ready.
-- Refreshing replaces all active passages for that company, including source metadata, and removes stale passages from search. Older cached vectors remain available for reuse.
-- Search requires the current `chunks.json` to match the indexed snapshot. After recollecting documents, rerun chunking and indexing in that order.
-- Requests use batches of at most 16 passages and bounded retries for transient failures. Inputs are conservatively capped at 8,000 UTF-8 bytes each. Oversized text is rejected before requests; rechunk with a smaller `--max-chars` value.
-- Run one index writer per company at a time. Exact search loads that company's vectors into memory and is intended for a small prototype, not a large production corpus.
+```sh
+python -m earnings_collector.indexing search AAPL "What were the main risks?" --form 10-K --top-k 3
+python -m earnings_collector.indexing search AAPL "Revenue growth" --period-end 2026-06-27
+```
 
-Both commands return exit code `0` on success and `1` on operational failure; argument errors use `2`. Indexing may successfully index partial source coverage, which remains explicit in search output.
+A period filter matches only a known reporting period end; exhibits with unknown periods do not match. All commands accept `--data-dir` for a different collection and model-cache directory.
 
-The API transport, cache, refresh, filtering, and ranking are tested with synthetic embedding responses. Live indexing and semantic retrieval quality require an API key and a separate integration check. No live embedding run is implied by a successful dry run.
+Implementation and limits:
+
+- The model revision and pooling strategy are part of the cache identity, alongside dimensions and text hashes.
+- MiniLM has a short context window. Longer passages are split into nonoverlapping token windows, then combined using a token-count-weighted mean and normalized. This covers all tokens but can dilute individual details in long passages; smaller chunks may improve retrieval.
+- Source text and citation offsets remain unchanged. Embedding windows are internal and do not replace the original passages.
+- Successful batches are cached for resuming after a failure. The prior searchable snapshot stays intact until the replacement is complete. Obsolete passages are removed from search; old cached vectors remain available for reuse.
+- Search rejects a stale index when `chunks.json` changes. After collecting new documents, rerun chunking and then indexing.
+- Inputs remain limited to 8,000 UTF-8 bytes to bound resource use. Rechunk oversized input with a smaller `--max-chars` value.
+- Inference uses the CPU for portability. Exact cosine search loads one company's vectors into memory. Run one index writer per company at a time.
+- Local execution has no embedding service fees, but uses disk space, RAM, and processing power. AI report generation is still a future feature and will also need a local model to avoid service fees.
+
+Commands return `0` on success, `1` on operational failure, and `2` for argument errors. Successful indexing can still have partial source coverage, which remains explicit in search output.
+
+Model reference: [MiniLM model card](https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2).
 
 ## Tests
 

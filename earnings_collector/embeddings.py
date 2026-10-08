@@ -1,11 +1,7 @@
-"""OpenAI embedding transport with explicit limits and validated vectors."""
-import json
+"""Local, offline embedding inference. Only the download command uses the network."""
 import math
 import os
-import time
-from urllib.error import HTTPError, URLError
-from urllib.request import Request, urlopen
-
+from pathlib import Path
 
 class IndexError(Exception):
     """An actionable indexing or retrieval error."""
@@ -14,8 +10,7 @@ class IndexError(Exception):
 def validate_text(text):
     if not isinstance(text, str) or not text.strip():
         raise IndexError('Embedding input must be nonempty text.')
-    # UTF-8 byte count is a conservative upper bound on byte-BPE token count.
-    # Avoid a tokenizer dependency while staying below the 8,192-token limit.
+    # Bound resource use. Long passages are embedded using token windows below.
     if len(text.encode('utf-8')) > 8000:
         raise IndexError('Input exceeds the conservative 8,000-byte limit. Rechunk with a smaller --max-chars value.')
 
@@ -31,55 +26,77 @@ def unit_vector(vector, dimensions):
     return [x / norm for x in vector]
 
 
-class OpenAIEmbedder:
-    model = 'text-embedding-3-small'
-    dimensions = 1536
-    provider = 'openai'
+MODEL_ID = 'sentence-transformers/all-MiniLM-L6-v2'
+MODEL_REVISION = '1110a243fdf4706b3f48f1d95db1a4f5529b4d41'
 
-    def __init__(self, api_key=None):
-        self.api_key = api_key if api_key is not None else os.environ.get('OPENAI_API_KEY', '')
+
+def token_windows(token_ids, size):
+    if size < 1:
+        raise IndexError('Invalid model context length.')
+    return [token_ids[i:i + size] for i in range(0, len(token_ids), size)]
+
+
+class LocalEmbedder:
+    provider = 'local-sentence-transformers'
+    # Include pooling strategy and revision so incompatible cached vectors never mix.
+    model = f'{MODEL_ID}@{MODEL_REVISION}:token-window-weighted-mean-v1'
+    dimensions = 384
+
+    def __init__(self, cache_dir=Path('data/.models')):
+        self.cache_dir = Path(cache_dir)
+        self._encoder = None
+
+    def load(self, download=False):
+        if self._encoder is not None:
+            return self._encoder
+        os.environ['HF_HUB_DISABLE_TELEMETRY'] = '1'
+        os.environ['TOKENIZERS_PARALLELISM'] = 'false'
+        try:
+            from sentence_transformers import SentenceTransformer
+        except ImportError as exc:
+            raise IndexError('Install local embedding dependencies with: python -m pip install -e ".[local]"') from exc
+        try:
+            encoder = SentenceTransformer(
+                MODEL_ID, revision=MODEL_REVISION, cache_folder=str(self.cache_dir),
+                local_files_only=not download, trust_remote_code=False, device='cpu',
+                model_kwargs={'use_safetensors': True},
+            )
+        except (OSError, ValueError, RuntimeError) as exc:
+            raise IndexError('Cannot load the local model. Run: python -m earnings_collector.indexing download-model') from exc
+        dimension_method = getattr(encoder, 'get_embedding_dimension', None)
+        if dimension_method is None:
+            dimension_method = encoder.get_sentence_embedding_dimension
+        if dimension_method() != self.dimensions:
+            raise IndexError('Local model dimensions do not match the index configuration.')
+        encoder.eval()
+        self._encoder = encoder
+        return encoder
 
     def embed(self, texts):
-        if not self.api_key.strip():
-            raise IndexError('Set OPENAI_API_KEY locally and export it before indexing or searching. Do not put the key in source code.')
-        if not 1 <= len(texts) <= 16:
-            raise IndexError('Embedding batches must contain 1 to 16 passages.')
+        if not texts:
+            raise IndexError('Provide at least one passage.')
         for text in texts:
             validate_text(text)
-        body = json.dumps({'model': self.model, 'input': texts,
-                           'dimensions': self.dimensions, 'encoding_format': 'float'}).encode()
-        request = Request('https://api.openai.com/v1/embeddings', data=body, method='POST', headers={
-            'Authorization': f'Bearer {self.api_key}', 'Content-Type': 'application/json',
-        })
-        payload = None
-        for attempt in range(3):
-            try:
-                with urlopen(request, timeout=60) as response:
-                    payload = json.load(response)
-                break
-            except HTTPError as exc:
-                if exc.code not in {429, 500, 502, 503, 504} or attempt == 2:
-                    raise IndexError(f'OpenAI embedding request failed (HTTP {exc.code}); check credentials, quota, and API access.') from None
-                retry = exc.headers.get('Retry-After', '') if exc.headers else ''
-                delay = min(30, max(2 ** attempt, int(retry))) if retry.isdigit() else 2 ** attempt
-            except (URLError, TimeoutError, OSError):
-                if attempt == 2:
-                    raise IndexError('Could not reach OpenAI. Check network access and trusted TLS certificates.') from None
-                delay = 2 ** attempt
-            except (ValueError, UnicodeError):
-                raise IndexError('OpenAI returned invalid JSON.') from None
-            time.sleep(delay)
-        if not isinstance(payload, dict) or payload.get('model') != self.model:
-            raise IndexError('OpenAI returned an unexpected embedding model.')
-        items = payload.get('data')
-        if not isinstance(items, list) or len(items) != len(texts):
-            raise IndexError('OpenAI returned an unexpected number of embeddings.')
-        ordered = [None] * len(texts)
-        for item in items:
-            if not isinstance(item, dict):
-                raise IndexError('OpenAI returned an invalid embedding entry.')
-            index = item.get('index')
-            if type(index) is not int or not 0 <= index < len(texts) or ordered[index] is not None:
-                raise IndexError('OpenAI returned invalid embedding indices.')
-            ordered[index] = unit_vector(item.get('embedding'), self.dimensions)
-        return ordered
+        encoder = self.load()
+        import torch
+        tokenizer = encoder.tokenizer
+        capacity = encoder.max_seq_length - tokenizer.num_special_tokens_to_add(pair=False)
+        outputs = []
+        for text in texts:
+            ids = tokenizer.encode(text, add_special_tokens=False, truncation=False, verbose=False)
+            windows = token_windows(ids, capacity)
+            if not windows:
+                raise IndexError('Input contains no encodable tokens.')
+            total = torch.zeros(self.dimensions)
+            # Every token is covered: avoid MiniLM's default silent truncation.
+            for start in range(0, len(windows), 16):
+                batch = windows[start:start + 16]
+                features = [tokenizer.prepare_for_model(w, add_special_tokens=True,
+                            truncation=False, return_attention_mask=True, verbose=False) for w in batch]
+                tensors = tokenizer.pad(features, padding=True, return_tensors='pt', verbose=False)
+                with torch.inference_mode():
+                    vectors = encoder(dict(tensors))['sentence_embedding']
+                for vector, window in zip(vectors, batch):
+                    total += vector.cpu() * len(window)
+            outputs.append(unit_vector(total.tolist(), self.dimensions))
+        return outputs

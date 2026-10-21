@@ -1,0 +1,365 @@
+{
+  "ticker": "AAPL",
+  "chunks_sha256": "d4b9dcd05516bec235934b6857a35f0d04d4fa92a95c179c49d3115bdd85c1a1",
+  "model": "sentence-transformers/all-MiniLM-L6-v2@1110a243fdf4706b3f48f1d95db1a4f5529b4d41:token-window-weighted-mean-v1",
+  "summary": {
+    "development": {
+      "cases": 5,
+      "dense": {
+        "hit_at_1": 0.6,
+        "hit_at_5": 0.8,
+        "recall_at_5": 0.7,
+        "mrr_at_5": 0.7
+      },
+      "hybrid": {
+        "hit_at_1": 0.6,
+        "hit_at_5": 1.0,
+        "recall_at_5": 0.9,
+        "mrr_at_5": 0.75
+      }
+    },
+    "held_out": {
+      "cases": 5,
+      "dense": {
+        "hit_at_1": 0.2,
+        "hit_at_5": 0.6,
+        "recall_at_5": 0.6,
+        "mrr_at_5": 0.33999999999999997
+      },
+      "hybrid": {
+        "hit_at_1": 0.4,
+        "hit_at_5": 1.0,
+        "recall_at_5": 1.0,
+        "mrr_at_5": 0.6166666666666667
+      }
+    },
+    "all": {
+      "cases": 10,
+      "dense": {
+        "hit_at_1": 0.4,
+        "hit_at_5": 0.7,
+        "recall_at_5": 0.65,
+        "mrr_at_5": 0.52
+      },
+      "hybrid": {
+        "hit_at_1": 0.5,
+        "hit_at_5": 1.0,
+        "recall_at_5": 0.95,
+        "mrr_at_5": 0.6833333333333333
+      }
+    }
+  },
+  "cases": [
+    {
+      "id": "dividend",
+      "query": "When is the dividend payable?",
+      "split": "development",
+      "dense": {
+        "hit_at_1": 0.0,
+        "hit_at_5": 0.0,
+        "recall_at_5": 0.0,
+        "mrr_at_5": 0.0,
+        "retrieved_ids": [
+          "87b471b5f859c92993ed629b6acfb1463ffaf858c03410fc7f00a13464003892",
+          "cb8c70ac29100e12ed42acbd4ae31835c670b52ba35c12ce82adbac2941d41c5",
+          "16c8cfc868596b6b69ea2aec3922e84b8e5a22dcb170fd1f041c9ae1c95dba24",
+          "d7a436240bfbab0f2103d87a7156db3df55892d4f1445a90a29140a0b11a4e64",
+          "4e46d6c543ef97a5c64ce1f195243883f81222c38f8b2dd5a4c081193963f307"
+        ]
+      },
+      "hybrid": {
+        "hit_at_1": 0.0,
+        "hit_at_5": 1.0,
+        "recall_at_5": 1.0,
+        "mrr_at_5": 0.25,
+        "retrieved_ids": [
+          "87b471b5f859c92993ed629b6acfb1463ffaf858c03410fc7f00a13464003892",
+          "cb8c70ac29100e12ed42acbd4ae31835c670b52ba35c12ce82adbac2941d41c5",
+          "16c8cfc868596b6b69ea2aec3922e84b8e5a22dcb170fd1f041c9ae1c95dba24",
+          "e3e8f2a26f06e836e2e628b09923db011fe3167789686429a5d3ab6e4f53bb6b",
+          "345a2b8f1acf32a36f2de12c28d82cac2eaf728ec6c7c325921fe3b707eb2df8"
+        ]
+      }
+    },
+    {
+      "id": "services",
+      "query": "What drove Services sales growth in the third quarter of 2026?",
+      "split": "development",
+      "dense": {
+        "hit_at_1": 0.0,
+        "hit_at_5": 1.0,
+        "recall_at_5": 1.0,
+        "mrr_at_5": 0.5,
+        "retrieved_ids": [
+          "87065c04b9edf1cb2c2951124e826d189d7b170b3eb9a89e33268f45ae3e38a4",
+          "27c15c819f5e9164eb8046cc141080114669ddce7bfd7f2bf950c31003508dd1",
+          "f2e48e6cef1f01ab0517e30fb372b78243507e6808056c12a607ecf67a2382a4",
+          "79fa6a27c486982552bd426c8ac2f9802da64d31b6eb62165f0aa3ca9b6d3d76",
+          "89f5ef1ff09c17494efd167374ee7c18fe0c99cb1a2956c501189edd3e1dfdf8"
+        ]
+      },
+      "hybrid": {
+        "hit_at_1": 1.0,
+        "hit_at_5": 1.0,
+        "recall_at_5": 1.0,
+        "mrr_at_5": 1.0,
+        "retrieved_ids": [
+          "27c15c819f5e9164eb8046cc141080114669ddce7bfd7f2bf950c31003508dd1",
+          "87065c04b9edf1cb2c2951124e826d189d7b170b3eb9a89e33268f45ae3e38a4",
+          "f2e48e6cef1f01ab0517e30fb372b78243507e6808056c12a607ecf67a2382a4",
+          "79fa6a27c486982552bd426c8ac2f9802da64d31b6eb62165f0aa3ca9b6d3d76",
+          "978527b661b38455246113bca019746684fe8815917fd114dbf1fe4178b99f16"
+        ]
+      }
+    },
+    {
+      "id": "iphone",
+      "query": "Why did iPhone sales increase in the third quarter of 2026?",
+      "split": "development",
+      "dense": {
+        "hit_at_1": 1.0,
+        "hit_at_5": 1.0,
+        "recall_at_5": 1.0,
+        "mrr_at_5": 1.0,
+        "retrieved_ids": [
+          "27c15c819f5e9164eb8046cc141080114669ddce7bfd7f2bf950c31003508dd1",
+          "89f5ef1ff09c17494efd167374ee7c18fe0c99cb1a2956c501189edd3e1dfdf8",
+          "b32018fe6690098dda5688ec24779f1fadc6d48657c58383814dfd5ce656eb20",
+          "e3e8f2a26f06e836e2e628b09923db011fe3167789686429a5d3ab6e4f53bb6b",
+          "13637a5d38697c53b3f0113b7f76a426cdc9faaeed4e05380e4cac0769bd0f95"
+        ]
+      },
+      "hybrid": {
+        "hit_at_1": 1.0,
+        "hit_at_5": 1.0,
+        "recall_at_5": 1.0,
+        "mrr_at_5": 1.0,
+        "retrieved_ids": [
+          "27c15c819f5e9164eb8046cc141080114669ddce7bfd7f2bf950c31003508dd1",
+          "e3e8f2a26f06e836e2e628b09923db011fe3167789686429a5d3ab6e4f53bb6b",
+          "f2e48e6cef1f01ab0517e30fb372b78243507e6808056c12a607ecf67a2382a4",
+          "13637a5d38697c53b3f0113b7f76a426cdc9faaeed4e05380e4cac0769bd0f95",
+          "89f5ef1ff09c17494efd167374ee7c18fe0c99cb1a2956c501189edd3e1dfdf8"
+        ]
+      }
+    },
+    {
+      "id": "competition",
+      "query": "What risks does Apple face from competition?",
+      "split": "development",
+      "dense": {
+        "hit_at_1": 1.0,
+        "hit_at_5": 1.0,
+        "recall_at_5": 0.5,
+        "mrr_at_5": 1.0,
+        "retrieved_ids": [
+          "5598fed04c34a5f38c324d238a074e0578a9e218a68b4e5c11c9c1468a96b720",
+          "e4f71454ce82396b58552f0a28c71c84649fe403922ae504a5dfa85b60267842",
+          "9a185cf1ab3352aa47fe1951b6c4b527ad3795a1bcf7a5276f9f26314a402790",
+          "3718da6a261ac745a9e7a66905f5f250e6d97acdb6fcc7a0924c4aef4b308c76",
+          "51149be9c435f87096c997ef8eb96b3d4625d5dd6cbe8db712c3bba4889580ce"
+        ]
+      },
+      "hybrid": {
+        "hit_at_1": 0.0,
+        "hit_at_5": 1.0,
+        "recall_at_5": 0.5,
+        "mrr_at_5": 0.5,
+        "retrieved_ids": [
+          "e4f71454ce82396b58552f0a28c71c84649fe403922ae504a5dfa85b60267842",
+          "5598fed04c34a5f38c324d238a074e0578a9e218a68b4e5c11c9c1468a96b720",
+          "3718da6a261ac745a9e7a66905f5f250e6d97acdb6fcc7a0924c4aef4b308c76",
+          "aa6b33ff21098cea9eb4001ac2488511c79bd8a2d9f59613e8f9bbaecaab1c87",
+          "9ecec1a83ad6b1763a9e68c1fba61a24320bba35271ca54bc1e92afacb2e72cf"
+        ]
+      }
+    },
+    {
+      "id": "china",
+      "query": "Why did Greater China sales increase in the third quarter of 2026?",
+      "split": "development",
+      "dense": {
+        "hit_at_1": 1.0,
+        "hit_at_5": 1.0,
+        "recall_at_5": 1.0,
+        "mrr_at_5": 1.0,
+        "retrieved_ids": [
+          "f2e48e6cef1f01ab0517e30fb372b78243507e6808056c12a607ecf67a2382a4",
+          "27c15c819f5e9164eb8046cc141080114669ddce7bfd7f2bf950c31003508dd1",
+          "a8cd84b38a50e2fcdd33b36420ee64e17afe8ee7604bfba51f86c0ba58593882",
+          "93133db171b088b2ce977162e1bb5a964384190d00ab8836a21bead38d35ce43",
+          "75467ba013b1a8e4e02b0961e0840df4bb9934849b1896408576990c509082fa"
+        ]
+      },
+      "hybrid": {
+        "hit_at_1": 1.0,
+        "hit_at_5": 1.0,
+        "recall_at_5": 1.0,
+        "mrr_at_5": 1.0,
+        "retrieved_ids": [
+          "f2e48e6cef1f01ab0517e30fb372b78243507e6808056c12a607ecf67a2382a4",
+          "27c15c819f5e9164eb8046cc141080114669ddce7bfd7f2bf950c31003508dd1",
+          "a8cd84b38a50e2fcdd33b36420ee64e17afe8ee7604bfba51f86c0ba58593882",
+          "75467ba013b1a8e4e02b0961e0840df4bb9934849b1896408576990c509082fa",
+          "93133db171b088b2ce977162e1bb5a964384190d00ab8836a21bead38d35ce43"
+        ]
+      }
+    },
+    {
+      "id": "refunds",
+      "query": "How did tariff refunds affect earnings per share?",
+      "split": "held_out",
+      "dense": {
+        "hit_at_1": 0.0,
+        "hit_at_5": 0.0,
+        "recall_at_5": 0.0,
+        "mrr_at_5": 0.0,
+        "retrieved_ids": [
+          "206b6332467bb6fa8c778156c0ace790f6c76cf7bb611e3958516b52e987100b",
+          "cb8c70ac29100e12ed42acbd4ae31835c670b52ba35c12ce82adbac2941d41c5",
+          "4e46d6c543ef97a5c64ce1f195243883f81222c38f8b2dd5a4c081193963f307",
+          "0f8c9450ea9009e3de328b4d82ed729d7389ddc825b427640d5a350f22ad6fba",
+          "3eefd9ad863131de25192b6a2541f4f27cb1b1b09b89bc251098e2179981c637"
+        ]
+      },
+      "hybrid": {
+        "hit_at_1": 0.0,
+        "hit_at_5": 1.0,
+        "recall_at_5": 1.0,
+        "mrr_at_5": 0.5,
+        "retrieved_ids": [
+          "4e46d6c543ef97a5c64ce1f195243883f81222c38f8b2dd5a4c081193963f307",
+          "e3e8f2a26f06e836e2e628b09923db011fe3167789686429a5d3ab6e4f53bb6b",
+          "0f8c9450ea9009e3de328b4d82ed729d7389ddc825b427640d5a350f22ad6fba",
+          "cb8c70ac29100e12ed42acbd4ae31835c670b52ba35c12ce82adbac2941d41c5",
+          "d7a436240bfbab0f2103d87a7156db3df55892d4f1445a90a29140a0b11a4e64"
+        ]
+      }
+    },
+    {
+      "id": "repurchases",
+      "query": "How many shares did Apple repurchase in the first nine months of 2026?",
+      "split": "held_out",
+      "dense": {
+        "hit_at_1": 0.0,
+        "hit_at_5": 0.0,
+        "recall_at_5": 0.0,
+        "mrr_at_5": 0.0,
+        "retrieved_ids": [
+          "d840d81f14964c24026af1877299df15e94ddbe2318353ffed729b6bddab2e28",
+          "e3e8f2a26f06e836e2e628b09923db011fe3167789686429a5d3ab6e4f53bb6b",
+          "72eced21cab1273aedf1250259aa23aa15d603fab5a7d375cdc9857958fc58db",
+          "eea3fe40be076a12d70094507492a97fc9169907933a2c1eb4272f3ffa005cf3",
+          "cb8c70ac29100e12ed42acbd4ae31835c670b52ba35c12ce82adbac2941d41c5"
+        ]
+      },
+      "hybrid": {
+        "hit_at_1": 1.0,
+        "hit_at_5": 1.0,
+        "recall_at_5": 1.0,
+        "mrr_at_5": 1.0,
+        "retrieved_ids": [
+          "206b6332467bb6fa8c778156c0ace790f6c76cf7bb611e3958516b52e987100b",
+          "72eced21cab1273aedf1250259aa23aa15d603fab5a7d375cdc9857958fc58db",
+          "b32018fe6690098dda5688ec24779f1fadc6d48657c58383814dfd5ce656eb20",
+          "d840d81f14964c24026af1877299df15e94ddbe2318353ffed729b6bddab2e28",
+          "cb8c70ac29100e12ed42acbd4ae31835c670b52ba35c12ce82adbac2941d41c5"
+        ]
+      }
+    },
+    {
+      "id": "mac",
+      "query": "What drove Mac sales growth in the third quarter of 2026?",
+      "split": "held_out",
+      "dense": {
+        "hit_at_1": 1.0,
+        "hit_at_5": 1.0,
+        "recall_at_5": 1.0,
+        "mrr_at_5": 1.0,
+        "retrieved_ids": [
+          "27c15c819f5e9164eb8046cc141080114669ddce7bfd7f2bf950c31003508dd1",
+          "f2e48e6cef1f01ab0517e30fb372b78243507e6808056c12a607ecf67a2382a4",
+          "89f5ef1ff09c17494efd167374ee7c18fe0c99cb1a2956c501189edd3e1dfdf8",
+          "87065c04b9edf1cb2c2951124e826d189d7b170b3eb9a89e33268f45ae3e38a4",
+          "b32018fe6690098dda5688ec24779f1fadc6d48657c58383814dfd5ce656eb20"
+        ]
+      },
+      "hybrid": {
+        "hit_at_1": 1.0,
+        "hit_at_5": 1.0,
+        "recall_at_5": 1.0,
+        "mrr_at_5": 1.0,
+        "retrieved_ids": [
+          "27c15c819f5e9164eb8046cc141080114669ddce7bfd7f2bf950c31003508dd1",
+          "f2e48e6cef1f01ab0517e30fb372b78243507e6808056c12a607ecf67a2382a4",
+          "87065c04b9edf1cb2c2951124e826d189d7b170b3eb9a89e33268f45ae3e38a4",
+          "e3e8f2a26f06e836e2e628b09923db011fe3167789686429a5d3ab6e4f53bb6b",
+          "13637a5d38697c53b3f0113b7f76a426cdc9faaeed4e05380e4cac0769bd0f95"
+        ]
+      }
+    },
+    {
+      "id": "annualchina",
+      "query": "Why did Greater China sales decline in 2025?",
+      "split": "held_out",
+      "dense": {
+        "hit_at_1": 0.0,
+        "hit_at_5": 1.0,
+        "recall_at_5": 1.0,
+        "mrr_at_5": 0.2,
+        "retrieved_ids": [
+          "f2e48e6cef1f01ab0517e30fb372b78243507e6808056c12a607ecf67a2382a4",
+          "a8cd84b38a50e2fcdd33b36420ee64e17afe8ee7604bfba51f86c0ba58593882",
+          "75467ba013b1a8e4e02b0961e0840df4bb9934849b1896408576990c509082fa",
+          "93133db171b088b2ce977162e1bb5a964384190d00ab8836a21bead38d35ce43",
+          "89f5ef1ff09c17494efd167374ee7c18fe0c99cb1a2956c501189edd3e1dfdf8"
+        ]
+      },
+      "hybrid": {
+        "hit_at_1": 0.0,
+        "hit_at_5": 1.0,
+        "recall_at_5": 1.0,
+        "mrr_at_5": 0.25,
+        "retrieved_ids": [
+          "f2e48e6cef1f01ab0517e30fb372b78243507e6808056c12a607ecf67a2382a4",
+          "75467ba013b1a8e4e02b0961e0840df4bb9934849b1896408576990c509082fa",
+          "a8cd84b38a50e2fcdd33b36420ee64e17afe8ee7604bfba51f86c0ba58593882",
+          "89f5ef1ff09c17494efd167374ee7c18fe0c99cb1a2956c501189edd3e1dfdf8",
+          "93133db171b088b2ce977162e1bb5a964384190d00ab8836a21bead38d35ce43"
+        ]
+      }
+    },
+    {
+      "id": "annualservices",
+      "query": "What drove Services sales growth in 2025?",
+      "split": "held_out",
+      "dense": {
+        "hit_at_1": 0.0,
+        "hit_at_5": 1.0,
+        "recall_at_5": 1.0,
+        "mrr_at_5": 0.5,
+        "retrieved_ids": [
+          "27c15c819f5e9164eb8046cc141080114669ddce7bfd7f2bf950c31003508dd1",
+          "89f5ef1ff09c17494efd167374ee7c18fe0c99cb1a2956c501189edd3e1dfdf8",
+          "87065c04b9edf1cb2c2951124e826d189d7b170b3eb9a89e33268f45ae3e38a4",
+          "79fa6a27c486982552bd426c8ac2f9802da64d31b6eb62165f0aa3ca9b6d3d76",
+          "f2e48e6cef1f01ab0517e30fb372b78243507e6808056c12a607ecf67a2382a4"
+        ]
+      },
+      "hybrid": {
+        "hit_at_1": 0.0,
+        "hit_at_5": 1.0,
+        "recall_at_5": 1.0,
+        "mrr_at_5": 0.3333333333333333,
+        "retrieved_ids": [
+          "79fa6a27c486982552bd426c8ac2f9802da64d31b6eb62165f0aa3ca9b6d3d76",
+          "27c15c819f5e9164eb8046cc141080114669ddce7bfd7f2bf950c31003508dd1",
+          "89f5ef1ff09c17494efd167374ee7c18fe0c99cb1a2956c501189edd3e1dfdf8",
+          "87065c04b9edf1cb2c2951124e826d189d7b170b3eb9a89e33268f45ae3e38a4",
+          "f2e48e6cef1f01ab0517e30fb372b78243507e6808056c12a607ecf67a2382a4"
+        ]
+      }
+    }
+  ],
+  "limitations": "One-company, ten-question smoke benchmark with known relevant passages, not exhaustive labels. Does not test answer generation or unanswerable-query abstention."
+}

@@ -59,7 +59,7 @@ class IndexTests(unittest.TestCase):
         self.index()
         result = self.search(top_k=1)
         self.assertEqual(result['results'][0]['id'], 'a')
-        self.assertEqual(result['results'][0]['score'], 1)
+        self.assertEqual(result['results'][0]['semantic_score'], 1)
         self.assertEqual(result['results'][0]['source'], self.payload['chunks'][0]['source'])
         self.assertEqual(result['collection_warnings'], ['No transcripts'])
 

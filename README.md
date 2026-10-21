@@ -183,7 +183,7 @@ python -m earnings_collector.indexing search AAPL "What drove revenue growth?" -
 
 Dry runs validate passages and inspect cached work without loading the model or writing the database. Rerunning indexing reuses unchanged embeddings. Old OpenAI vectors, if present, are not reused: the local model gets its own cache entries, and a successful index run replaces the searchable snapshot. There is no automatic fallback to a paid provider.
 
-Search returns ranked passages, cosine similarity scores, original source metadata, and collection warnings. It does not generate an answer. Scores measure similarity, not factual confidence, and search does not infer which reporting quarter you mean. Use explicit filters where needed:
+Search combines semantic similarity with BM25 keyword matching using reciprocal-rank fusion. It returns ranked passages, original source metadata, and collection warnings. `score` is the fusion score; `semantic_score` retains cosine similarity and `lexical_score` reports BM25. These scores are not probabilities. It does not generate an answer. Scores measure similarity, not factual confidence, and search does not infer which reporting quarter you mean. Use explicit filters where needed:
 
 ```sh
 python -m earnings_collector.indexing search AAPL "What were the main risks?" --form 10-K --top-k 3
@@ -218,3 +218,28 @@ The tests use synthetic SEC responses and require no network access. GitHub Acti
 ## What this project demonstrates
 
 The project brings together automated data ingestion, document processing, semantic retrieval, language model integration, and financial research in an end-to-end web application. Its central goal is to make source-backed earnings research accessible through a simple company search.
+
+## Retrieval quality evaluation
+
+Hybrid ranking is the default. It combines semantic and keyword ranks with equal reciprocal-rank weights and a fixed smoothing constant of 20. Keywords help retrieve exact names, financial terms, and dates that semantic search may miss. Form and reporting-period filters apply before both ranking methods. No period is inferred from the question, and no extra model or service is needed. To compare the earlier semantic-only ranking:
+
+```sh
+python -m earnings_collector.indexing search AAPL "When is the dividend payable?" --mode dense
+python -m earnings_collector.indexing search AAPL "When is the dividend payable?" --mode hybrid
+python -m earnings_collector.evaluation
+```
+
+The evaluator uses `evaluations/aapl.json`: ten questions with source URLs, evidence excerpts, and relevant passage IDs, split into five development and five held-out checks before running the comparison. It requires the exact saved corpus fingerprint, so refreshing or rechunking documents requires reviewing the evidence labels. Downloaded documents are not committed; another checkout must have the matching corpus to reproduce this benchmark. The evaluator rejects a different corpus instead of silently scoring stale labels.
+
+Results on the frozen 158-passage Apple corpus:
+
+| Metric | Semantic only | Hybrid |
+| --- | --- | --- |
+| Questions with known evidence at rank 1 | 4 / 10 | 5 / 10 |
+| Questions with known evidence in top 5 | 7 / 10 | 10 / 10 |
+| Held-out questions with evidence in top 5 | 3 / 5 | 5 / 5 |
+| Mean reciprocal rank within top 5 | 0.520 | 0.683 |
+
+Full per-question results are saved in `evaluations/aapl-results.json`. New evaluation runs write `data/retrieval-evaluation.json` by default. Hit rate measures whether any labeled passage is found; recall measures the fraction of labeled passages retrieved; reciprocal rank rewards placing evidence earlier.
+
+This is a small, single-company smoke benchmark, not a general accuracy claim. Labels identify known supporting passages rather than every potentially relevant passage. Some held-out cases share source passages with development cases, so the split tests new questions, not unseen documents. Search can still return irrelevant passages for unanswerable questions and does not determine factual support automatically. Broader company coverage, more period-confusion cases, negative questions, and stronger first-result ranking remain future evaluation work.

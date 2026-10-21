@@ -1,0 +1,163 @@
+{
+  "ticker": "AAPL",
+  "chunks_sha256": "d4b9dcd05516bec235934b6857a35f0d04d4fa92a95c179c49d3115bdd85c1a1",
+  "notes": "Small manually specified evidence set; known relevant passages, not exhaustive relevance judgments. No automatic period filters. Frozen corpus required. Held-out queries are not used to tune ranking.",
+  "cases": [
+    {
+      "id": "dividend",
+      "query": "When is the dividend payable?",
+      "split": "development",
+      "relevant_ids": [
+        "e3e8f2a26f06e836e2e628b09923db011fe3167789686429a5d3ab6e4f53bb6b"
+      ],
+      "evidence": [
+        {
+          "chunk_id": "e3e8f2a26f06e836e2e628b09923db011fe3167789686429a5d3ab6e4f53bb6b",
+          "source_url": "https://www.sec.gov/Archives/edgar/data/320193/000032019326000018/a8-kex991q3202606272026.htm",
+          "excerpt": "e Company\u2019s common stock. The dividend is payable on August 13, 2026, to shareholders of record as of the close of business on August 10, 2026.\nApple will provide live streaming of its Q3 2026 financial results conference call beginning at 2:00 p.m. PT on July 30, 2026, at apple.com/investor/earnings-call. The webcast will be available for replay for approximately two weeks thereafter.\nApple periodically provides information f"
+        }
+      ]
+    },
+    {
+      "id": "services",
+      "query": "What drove Services sales growth in the third quarter of 2026?",
+      "split": "development",
+      "relevant_ids": [
+        "27c15c819f5e9164eb8046cc141080114669ddce7bfd7f2bf950c31003508dd1"
+      ],
+      "evidence": [
+        {
+          "chunk_id": "27c15c819f5e9164eb8046cc141080114669ddce7bfd7f2bf950c31003508dd1",
+          "source_url": "https://www.sec.gov/Archives/edgar/data/320193/000032019326000020/aapl-20260627.htm",
+          "excerpt": "ories and Wearables.\nServices\nServices net sales increased during the third quarter and first nine months of 2026 compared to the same periods in 2025 primarily due to higher net sales from advertising and cloud services.\nApple Inc. | Q3 2026 Form 10-Q | 15\nGross Margin\nProducts and Services gross margin and gross margin percentage for the three- and nine-month periods ended June 27, 2026 and June 28, 2025, were as follows (do"
+        }
+      ]
+    },
+    {
+      "id": "iphone",
+      "query": "Why did iPhone sales increase in the third quarter of 2026?",
+      "split": "development",
+      "relevant_ids": [
+        "27c15c819f5e9164eb8046cc141080114669ddce7bfd7f2bf950c31003508dd1"
+      ],
+      "evidence": [
+        {
+          "chunk_id": "27c15c819f5e9164eb8046cc141080114669ddce7bfd7f2bf950c31003508dd1",
+          "source_url": "https://www.sec.gov/Archives/edgar/data/320193/000032019326000020/aapl-20260627.htm",
+          "excerpt": "57 \t\t\t$\t313,695 \t\t\t16%\niPhone\niPhone net sales increased during the third quarter and first nine months of 2026 compared to the same periods in 2025 primarily due to higher net sales of Pro models.\nMac\nMac net sales increased during the third quarter and first nine months of 2026 compared to the same periods in 2025 due to higher net sales of laptops.\niPad\niPad net sales decreased during the third quarter of 2026 compared to t"
+        }
+      ]
+    },
+    {
+      "id": "competition",
+      "query": "What risks does Apple face from competition?",
+      "split": "development",
+      "relevant_ids": [
+        "5598fed04c34a5f38c324d238a074e0578a9e218a68b4e5c11c9c1468a96b720",
+        "3ff0025e21633d4ccb3b853c0c989e8fc584f8b885ab0fbe03e0d958f6aad351"
+      ],
+      "evidence": [
+        {
+          "chunk_id": "5598fed04c34a5f38c324d238a074e0578a9e218a68b4e5c11c9c1468a96b720",
+          "source_url": "https://www.sec.gov/Archives/edgar/data/320193/000032019325000079/aapl-20250927.htm",
+          "excerpt": "tive and are characterized by aggressive price competition, downward pressure on gross margins, continual improvement in product performance, and price sensitivity on the part of consumers and businesses. The markets in which the Company competes are further defined by frequent introduction of new products and services, short product life cycles, evolving industry standards, and rapid adoption of technological advancements by "
+        },
+        {
+          "chunk_id": "3ff0025e21633d4ccb3b853c0c989e8fc584f8b885ab0fbe03e0d958f6aad351",
+          "source_url": "https://www.sec.gov/Archives/edgar/data/320193/000032019325000079/aapl-20250927.htm",
+          "excerpt": " markets are characterized by aggressive price competition, downward pressure on gross margins, continual improvement in product performance, and price sensitivity on the part of consumers and businesses. These markets are further defined by frequent introduction of new products and services, short product life cycles, evolving industry standards, and rapid adoption of technological advancements.\nThe Company\u2019s ability to compe"
+        }
+      ]
+    },
+    {
+      "id": "china",
+      "query": "Why did Greater China sales increase in the third quarter of 2026?",
+      "split": "development",
+      "relevant_ids": [
+        "f2e48e6cef1f01ab0517e30fb372b78243507e6808056c12a607ecf67a2382a4"
+      ],
+      "evidence": [
+        {
+          "chunk_id": "f2e48e6cef1f01ab0517e30fb372b78243507e6808056c12a607ecf67a2382a4",
+          "source_url": "https://www.sec.gov/Archives/edgar/data/320193/000032019326000020/aapl-20260627.htm",
+          "excerpt": "months of 2026.\nGreater China\nGreater China net sales increased during the third quarter and first nine months of 2026 compared to the same periods in 2025 primarily due to higher net sales of iPhone. The strength in the renminbi relative to the U.S. dollar had a favorable year-over-year impact on Greater China net sales during the third quarter and first nine months of 2026.\nApple Inc. | Q3 2026 Form 10-Q | 14\nJapan\nJapan net"
+        }
+      ]
+    },
+    {
+      "id": "refunds",
+      "query": "How did tariff refunds affect earnings per share?",
+      "split": "held_out",
+      "relevant_ids": [
+        "e3e8f2a26f06e836e2e628b09923db011fe3167789686429a5d3ab6e4f53bb6b"
+      ],
+      "evidence": [
+        {
+          "chunk_id": "e3e8f2a26f06e836e2e628b09923db011fe3167789686429a5d3ab6e4f53bb6b",
+          "source_url": "https://www.sec.gov/Archives/edgar/data/320193/000032019326000018/a8-kex991q3202606272026.htm",
+          "excerpt": "ear over year, and included a favorable impact of $0.11 from tariff refunds.\n\u201cToday, Apple is proud to report our strongest June quarter ever, with double-digit revenue growth across iPhone, Mac and Services, and in every geographic segment,\u201d said Tim Cook, Apple\u2019s CEO. \u201cAt WWDC26, we were thrilled to introduce the all-new Siri AI, alongside all of Apple\u2019s latest software innovations and important new child safety features.\u201d\n\u201c"
+        }
+      ]
+    },
+    {
+      "id": "repurchases",
+      "query": "How many shares did Apple repurchase in the first nine months of 2026?",
+      "split": "held_out",
+      "relevant_ids": [
+        "206b6332467bb6fa8c778156c0ace790f6c76cf7bb611e3958516b52e987100b"
+      ],
+      "evidence": [
+        {
+          "chunk_id": "206b6332467bb6fa8c778156c0ace790f6c76cf7bb611e3958516b52e987100b",
+          "source_url": "https://www.sec.gov/Archives/edgar/data/320193/000032019326000020/aapl-20260627.htm",
+          "excerpt": "ed June 27, 2026, the Company repurchased 215 million shares of its common stock for $61.8 billion. The Company\u2019s share repurchase programs do not obligate the Company to acquire a minimum amount of shares. Under the programs, shares may be repurchased in privately negotiated or open market transactions, including under plans complying with Rule 10b5-1 under the Securities Exchange Act of 1934, as amended (\u201cExchange Act\u201d).\nApp"
+        }
+      ]
+    },
+    {
+      "id": "mac",
+      "query": "What drove Mac sales growth in the third quarter of 2026?",
+      "split": "held_out",
+      "relevant_ids": [
+        "27c15c819f5e9164eb8046cc141080114669ddce7bfd7f2bf950c31003508dd1"
+      ],
+      "evidence": [
+        {
+          "chunk_id": "27c15c819f5e9164eb8046cc141080114669ddce7bfd7f2bf950c31003508dd1",
+          "source_url": "https://www.sec.gov/Archives/edgar/data/320193/000032019326000020/aapl-20260627.htm",
+          "excerpt": " net sales of Pro models.\nMac\nMac net sales increased during the third quarter and first nine months of 2026 compared to the same periods in 2025 due to higher net sales of laptops.\niPad\niPad net sales decreased during the third quarter of 2026 compared to the third quarter of 2025 primarily due to lower net sales of iPad mini\u00ae and iPad Air\u00ae. Year-over-year iPad net sales increased during the first nine months of 2026 primaril"
+        }
+      ]
+    },
+    {
+      "id": "annualchina",
+      "query": "Why did Greater China sales decline in 2025?",
+      "split": "held_out",
+      "relevant_ids": [
+        "89f5ef1ff09c17494efd167374ee7c18fe0c99cb1a2956c501189edd3e1dfdf8"
+      ],
+      "evidence": [
+        {
+          "chunk_id": "89f5ef1ff09c17494efd167374ee7c18fe0c99cb1a2956c501189edd3e1dfdf8",
+          "source_url": "https://www.sec.gov/Archives/edgar/data/320193/000032019325000079/aapl-20250927.htm",
+          "excerpt": "iPhone and Mac.\nGreater China\nGreater China net sales decreased during 2025 compared to 2024 primarily due to lower net sales of iPhone, partially offset by higher net sales of Mac.\nJapan\nJapan net sales increased during 2025 compared to 2024 primarily due to higher net sales of iPhone, Services and iPad.\nRest of Asia Pacific\nRest of Asia Pacific net sales increased during 2025 compared to 2024 primarily due to higher net sale"
+        }
+      ]
+    },
+    {
+      "id": "annualservices",
+      "query": "What drove Services sales growth in 2025?",
+      "split": "held_out",
+      "relevant_ids": [
+        "89f5ef1ff09c17494efd167374ee7c18fe0c99cb1a2956c501189edd3e1dfdf8"
+      ],
+      "evidence": [
+        {
+          "chunk_id": "89f5ef1ff09c17494efd167374ee7c18fe0c99cb1a2956c501189edd3e1dfdf8",
+          "source_url": "https://www.sec.gov/Archives/edgar/data/320193/000032019325000079/aapl-20250927.htm",
+          "excerpt": "ories and Wearables.\nServices\nServices net sales increased during 2025 compared to 2024 primarily due to higher net sales from advertising, the App Store and cloud services.\nApple Inc. | 2025 Form 10-K | 23\nGross Margin\nProducts and Services gross margin and gross margin percentage for 2025, 2024 and 2023 were as follows (dollars in millions):\n2025\t\t2024\t\t2023\n"
+        }
+      ]
+    }
+  ]
+}

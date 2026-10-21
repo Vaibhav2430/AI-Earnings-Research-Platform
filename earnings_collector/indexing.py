@@ -8,6 +8,7 @@ import sys
 from contextlib import closing
 from pathlib import Path
 
+from .ranking import rank_passages
 from .embeddings import IndexError, LocalEmbedder, unit_vector, validate_text
 
 
@@ -110,9 +111,11 @@ def index_company(ticker, data_dir=Path('data'), embedder=None, dry_run=False):
     return summary
 
 
-def search_company(ticker, query, data_dir=Path('data'), top_k=5, form=None, period_end=None, embedder=None):
+def search_company(ticker, query, data_dir=Path('data'), top_k=5, form=None, period_end=None, embedder=None, mode="hybrid"):
     if not 1 <= top_k <= 50:
         raise IndexError('top_k must be between 1 and 50.')
+    if mode not in ('dense', 'hybrid'):
+        raise IndexError('Ranking mode must be dense or hybrid.')
     validate_text(query)
     root, _, fingerprint = load_chunks(ticker, data_dir)
     path = root / 'index.sqlite3'
@@ -138,7 +141,8 @@ def search_company(ticker, query, data_dir=Path('data'), top_k=5, form=None, per
             if period_end and source.get('reporting_period_end') != period_end:
                 continue
             candidates.append((chunk, unit_vector(json.loads(vector), embedder.dimensions)))
-    result = {'ticker': meta['ticker'], 'query': query, 'model': meta['model'],
+    result = {'ticker': meta['ticker'], 'query': query, 'model': meta['model'], 'ranking_mode': mode,
+              'score_type': 'reciprocal_rank_fusion' if mode == 'hybrid' else 'cosine_similarity',
               'chunk_status': meta['chunk_status'], 'collection_status': meta['collection_status'],
               'warnings': meta['warnings'], 'collection_warnings': meta['collection_warnings'], 'results': []}
     if not candidates:
@@ -151,7 +155,7 @@ def search_company(ticker, query, data_dir=Path('data'), top_k=5, form=None, per
     for chunk, vector in candidates:
         score = sum(a * b for a, b in zip(query_vector, vector))
         ranked.append({**chunk, 'score': max(-1.0, min(1.0, score))})
-    result['results'] = sorted(ranked, key=lambda c: (-c['score'], c['id']))[:top_k]
+    result['results'] = rank_passages(query, ranked, mode)[:top_k]
     return result
 
 
@@ -163,6 +167,7 @@ def main():
     index = commands.add_parser('index', help='Create or refresh a company index')
     index.add_argument('--dry-run', action='store_true', help='Validate input and show uncached work without API calls or database writes')
     search = commands.add_parser('search', help='Return relevant passages, not a generated answer')
+    search.add_argument('--mode', choices=['hybrid', 'dense'], default='hybrid')
     search.add_argument('--top-k', type=int, default=5)
     search.add_argument('--form', choices=['10-K', '10-Q', '8-K'])
     search.add_argument('--period-end', help='Exact reporting period end, YYYY-MM-DD; unknown periods will not match')
@@ -179,7 +184,7 @@ def main():
         elif args.command == 'index':
             result = index_company(args.ticker, args.data_dir, dry_run=args.dry_run)
         else:
-            result = search_company(args.ticker, args.query, args.data_dir, args.top_k, args.form, args.period_end)
+            result = search_company(args.ticker, args.query, args.data_dir, args.top_k, args.form, args.period_end, mode=args.mode)
     except (IndexError, OSError, sqlite3.Error, ValueError) as exc:
         print(f'Index operation failed: {exc}', file=sys.stderr)
         return 1

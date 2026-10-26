@@ -210,6 +210,36 @@ def markdown(summary):
     return '\n'.join(lines) + '\n'
 
 
+def prepare_financials(ticker, data_dir=Path('data'), refresh=False, client=None):
+    ticker = ticker.strip().upper()
+    if not re.fullmatch(r'[A-Z0-9][A-Z0-9.-]{0,14}', ticker):
+        raise FinancialError('Invalid ticker.')
+    root = data_dir / ticker
+    manifest = json.loads((root / 'manifest.json').read_text())
+    if manifest.get('ticker') != ticker:
+        raise FinancialError('Manifest ticker mismatch.')
+    path = root / 'companyfacts.json'
+    if refresh or not path.exists():
+        agent = os.environ.get('SEC_USER_AGENT', '')
+        if client is None and '@' not in agent:
+            raise FinancialError('Export SEC_USER_AGENT with your contact email for SEC downloads.')
+        client = client or SecClient(agent, data_dir / '.cache')
+        url = f"https://data.sec.gov/api/xbrl/companyfacts/CIK{int(manifest['cik']):010d}.json"
+        raw = client.get(url)
+        facts = json.loads(raw)
+        if int(facts['cik']) != int(manifest['cik']):
+            raise FinancialError('SEC response CIK mismatch.')
+        path.write_bytes(raw)
+        (root / 'companyfacts-source.json').write_text(json.dumps({'source_url': url, 'retrieved_at': datetime.now(timezone.utc).isoformat(), 'sha256': hashlib.sha256(raw).hexdigest()}, indent=2)+'\n')
+    raw = path.read_bytes()
+    result = build_summary(root, manifest, json.loads(raw))
+    result['companyfacts_sha256'] = hashlib.sha256(raw).hexdigest()
+    result['generated_at'] = datetime.now(timezone.utc).isoformat()
+    (root / 'financial-summary.json').write_text(json.dumps(result, indent=2)+'\n')
+    (root / 'financial-summary.md').write_text(markdown(result))
+    return result
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('ticker')
@@ -217,32 +247,9 @@ def main():
     parser.add_argument('--refresh', action='store_true', help='Refresh SEC company facts; otherwise reuse the saved snapshot')
     args = parser.parse_args()
     try:
-        ticker = args.ticker.strip().upper()
-        if not re.fullmatch(r'[A-Z0-9][A-Z0-9.-]{0,14}', ticker):
-            raise FinancialError('Invalid ticker.')
+        result = prepare_financials(args.ticker, args.data_dir, args.refresh)
+        ticker = result['ticker']
         root = args.data_dir / ticker
-        manifest = json.loads((root / 'manifest.json').read_text())
-        if manifest.get('ticker') != ticker:
-            raise FinancialError('Manifest ticker mismatch.')
-        path = root / 'companyfacts.json'
-        if args.refresh or not path.exists():
-            agent = os.environ.get('SEC_USER_AGENT', '')
-            if '@' not in agent:
-                raise FinancialError('Export SEC_USER_AGENT with your contact email for SEC downloads.')
-            client = SecClient(agent, args.data_dir / '.cache')
-            url = f"https://data.sec.gov/api/xbrl/companyfacts/CIK{int(manifest['cik']):010d}.json"
-            raw = client.get(url)
-            facts = json.loads(raw)
-            if int(facts['cik']) != int(manifest['cik']):
-                raise FinancialError('SEC response CIK mismatch.')
-            path.write_bytes(raw)
-            (root / 'companyfacts-source.json').write_text(json.dumps({'source_url': url, 'retrieved_at': datetime.now(timezone.utc).isoformat(), 'sha256': hashlib.sha256(raw).hexdigest()}, indent=2)+'\n')
-        raw = path.read_bytes()
-        result = build_summary(root, manifest, json.loads(raw))
-        result['companyfacts_sha256'] = hashlib.sha256(raw).hexdigest()
-        result['generated_at'] = datetime.now(timezone.utc).isoformat()
-        (root / 'financial-summary.json').write_text(json.dumps(result, indent=2)+'\n')
-        (root / 'financial-summary.md').write_text(markdown(result))
         print(f"{ticker}: saved {len(result['reports'])} period summaries to {root.resolve() / 'financial-summary.json'}")
         return 0 if result['reports'] else 2
     except (FinancialError, CollectionError, OSError, ValueError, KeyError) as exc:

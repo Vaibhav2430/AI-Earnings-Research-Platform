@@ -2,6 +2,29 @@
 
 An AI-powered web app that turns a company search into an earnings research report and a source-backed conversation.
 
+## Research with one command
+
+After installing the existing local model dependencies in your virtual environment, run:
+
+```bash
+.venv/bin/python -m earnings_collector.research AAPL "What was revenue and diluted EPS?"
+```
+
+This command collects missing SEC filings and financial facts, validates reporting periods, chunks documents, prepares the local search index, and answers with citations. It automatically downloads missing models on first use. Metric questions can use validated financial facts directly; narrative questions use the local Qwen model. There are no paid API calls.
+
+Keep `SEC_USER_AGENT` with your contact email in the local `.env` file. The command reads this setting and optional `SSL_CERT_FILE` automatically without executing the file. Existing shell settings take precedence. Dependencies must already be installed using `python -m pip install -e ".[generation]"`; local Qwen generation requires Apple Silicon.
+
+Saved documents and unchanged embeddings are reused. Saved data is not necessarily current. Add `--refresh` to check the SEC for newer filings, or `--offline` to use only previously downloaded data and models. These options cannot be combined.
+
+```bash
+.venv/bin/python -m earnings_collector.research MSFT "What was revenue?" --refresh
+.venv/bin/python -m earnings_collector.research AAPL "What drove iPhone revenue growth?" --offline
+```
+
+The default is the latest validated quarter in the saved filings. Use `--period-type annual` for annual results, or `--period-end YYYY-MM-DD` for a specific available period. The collector does not fetch arbitrary historical periods. Company names, web search, and earnings call transcripts are not yet supported by this command; enter a ticker.
+
+Answers are saved to `data/TICKER/last-answer.json`. Use `--json` for structured terminal output. Preparation failures leave the previous answer file intact and identify the failed stage. An unsupported question may return insufficient evidence instead of an answer.
+
 ## What am I building
 
 The goal is simple: search for a company by name or ticker, describe what you want to know, and get a report based on relevant earnings information. Users should not need to find transcripts, download filings, or upload documents themselves.

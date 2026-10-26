@@ -16,6 +16,7 @@ local = ["sentence-transformers>=5.1,<6", "transformers>=4.41,<5"]
 earnings-collect = "earnings_collector.__main__:main"
 earnings-chunk = "earnings_collector.chunking:main"
 earnings-index = "earnings_collector.indexing:main"
+earnings-financials = "earnings_collector.financials:main"
 
 [tool.setuptools.packages.find]
 include = ["earnings_collector*"]

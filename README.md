@@ -243,3 +243,36 @@ Results on the frozen 158-passage Apple corpus:
 Full per-question results are saved in `evaluations/aapl-results.json`. New evaluation runs write `data/retrieval-evaluation.json` by default. Hit rate measures whether any labeled passage is found; recall measures the fraction of labeled passages retrieved; reciprocal rank rewards placing evidence earlier.
 
 This is a small, single-company smoke benchmark, not a general accuracy claim. Labels identify known supporting passages rather than every potentially relevant passage. Some held-out cases share source passages with development cases, so the split tests new questions, not unseen documents. Search can still return irrelevant passages for unanswerable questions and does not determine factual support automatically. Broader company coverage, more period-confusion cases, negative questions, and stronger first-result ranking remain future evaluation work.
+
+## Validate periods and extract financial metrics
+
+Build a financial summary from free SEC Company Facts data and the filings already collected:
+
+```sh
+set -a
+source .env
+set +a
+python3 -m earnings_collector.financials AAPL
+```
+
+The first run downloads SEC Company Facts using your existing SEC contact header. Later runs reuse `data/AAPL/companyfacts.json` offline. Use `--refresh` to fetch a new facts snapshot or `--data-dir` to select another collection directory. No language model, paid API, or extra dependency is used. Company Facts is documented in the [SEC API guide](https://www.sec.gov/search-filings/edgar-application-programming-interfaces).
+
+Outputs:
+
+- `financial-summary.json`: Document period validation, annual and quarterly metrics, prior-year comparisons, fact selectors, source links, and missing-data explanations.
+- `financial-summary.md`: A readable table of the reported values and calculated growth.
+- `companyfacts.json` and `companyfacts-source.json`: The downloaded facts and their retrieval URL, timestamp, and checksum.
+
+The extractor checks the checksum of each collected 10-K or 10-Q and compares its inline XBRL document period end with the manifest. It supports ISO dates and English month-name dates, including nested inline tags. A disagreement or unsupported date prevents that filing from being summarized. Earnings release introductions can supply an explicit quarter/year-end statement with text offsets; this is labeled as text-identified and checked against collected filing dates. An 8-K event date is never treated as the earnings period end.
+
+Metrics currently include revenue, net income, operating income, diluted EPS, and operating cash flow when directly available. Values are US-GAAP and in USD or USD per share, with base-unit scale recorded explicitly. Adjusted/non-GAAP values, custom company tags, and other currencies are not interpreted as substitutes.
+
+Selection is restricted to each collected filing's exact accession and form. Quarterly durations must be 60 to 120 days; annual durations 330 to 400 days. Prior-year comparisons must use the same tag, unit, and accession, end 350 to 380 days earlier, and have durations within 10 days. This accommodates typical 52/53-week calendars without mixing year-to-date and quarterly facts. Conflicting values remain ambiguous. Growth is calculated in Python with decimal arithmetic and withheld when the prior base is zero or negative.
+
+Current limits:
+
+- This is an as-presented summary of the collected filings, not a guarantee of the latest available company results. Later restatements are not merged automatically.
+- Quarterly cash flow is not derived by subtracting cumulative periods. If only nine-month cash flow is reported, the quarterly metric stays unavailable.
+- Release statement matching does not validate every number in an earnings release. Unsupported date formats remain unknown.
+- Period findings are saved in the summary rather than rewriting the collection manifest, chunks, or search index. Existing retrieval period filters therefore keep their original metadata.
+- Exit code `0` means at least one validated filing summary was saved, even if individual metrics are unavailable. `2` means no filing could be validated; `1` means an operational failure. Read the JSON status fields for coverage.

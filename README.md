@@ -25,6 +25,22 @@ The default is the latest validated quarter in the saved filings. Use `--period-
 
 Answers are saved to `data/TICKER/last-answer.json`. Use `--json` for structured terminal output. Preparation failures leave the previous answer file intact and identify the failed stage. An unsupported question may return insufficient evidence instead of an answer.
 
+## Checking descriptive answers
+
+Narrative answers remain exact extracts from SEC evidence. Before asking Qwen to select an answer, the pipeline filters and ranks sentence choices using financial wording equivalents such as revenue/net sales and growth/increased. Questions about causes must match the subject before the causal explanation, so Azure driving another segment's growth cannot substitute for what drove Azure itself. The model sees at most 12 candidate sentences.
+
+The local model selects existing evidence IDs. If it copies a sentence instead, only a unique, exact match to an offered sentence is accepted and mapped to its citation. Unsupported selections remain rejected. Answer JSON includes `candidate_choice_ids` and `selection_attempts` to help distinguish retrieval, filtering, and model-output failures.
+
+Run the offline narrative smoke suite after downloading the required Apple and Microsoft data and local models:
+
+```bash
+.venv/bin/python -m earnings_collector.narrative_evaluation
+```
+
+The eight development cases cover growth, a named segment, risks, and unsupported questions across both companies. The runner records whether expected evidence was retrieved, offered to the model, and included in the answer. Details are saved to `data/narrative-evaluation.json`. Frozen corpus hashes prevent silently scoring changed filings; refreshes require reviewing the judgments. These are regression checks, not a general accuracy estimate. A matching expected excerpt does not prove all other selected sentences are relevant, so inspect the saved claims too.
+
+Subject matching is intentionally conservative and may abstain on unfamiliar paraphrases or questions spanning multiple subjects. Exact text validation proves provenance, not relevance, completeness, or correct interpretation of every reporting period.
+
 ## What am I building
 
 The goal is simple: search for a company by name or ticker, describe what you want to know, and get a report based on relevant earnings information. Users should not need to find transcripts, download filings, or upload documents themselves.

@@ -1,0 +1,57 @@
+{
+  "description": "Small development smoke suite. Source-backed expected excerpts, not exhaustive relevance labels or a held-out benchmark.",
+  "corpora": {
+    "AAPL": "d4b9dcd05516bec235934b6857a35f0d04d4fa92a95c179c49d3115bdd85c1a1",
+    "MSFT": "0f41fe342199c9a55d9bf646bf049f361585db52ae281d394fcd97c05d6217b6"
+  },
+  "cases": [
+    {
+      "id": "aapl-iphone",
+      "ticker": "AAPL",
+      "question": "What drove iPhone revenue growth?",
+      "expected_excerpt": "higher net sales of Pro models"
+    },
+    {
+      "id": "aapl-services",
+      "ticker": "AAPL",
+      "question": "What drove Services revenue growth?",
+      "expected_excerpt": "higher net sales from advertising and cloud services"
+    },
+    {
+      "id": "aapl-tariffs",
+      "ticker": "AAPL",
+      "question": "How could tariffs affect the business?",
+      "expected_excerpt": "including impacting the Company\u2019s supply chain"
+    },
+    {
+      "id": "msft-cloud",
+      "ticker": "MSFT",
+      "question": "What drove Intelligent Cloud revenue growth?",
+      "expected_excerpt": "Intelligent Cloud revenue increased driven by Azure."
+    },
+    {
+      "id": "msft-azure",
+      "ticker": "MSFT",
+      "question": "What drove Azure revenue growth?",
+      "expected_excerpt": "driven by demand for services across the platform"
+    },
+    {
+      "id": "msft-security",
+      "ticker": "MSFT",
+      "question": "What risks do cyberattacks pose?",
+      "expected_excerpt": "Cyberattacks and security vulnerabilities could lead to reduced revenue"
+    },
+    {
+      "id": "aapl-unknown",
+      "ticker": "AAPL",
+      "question": "What is the CEO\u2019s shoe size?",
+      "expected_excerpt": null
+    },
+    {
+      "id": "msft-unknown",
+      "ticker": "MSFT",
+      "question": "What was revenue from lunar mining?",
+      "expected_excerpt": null
+    }
+  ]
+}

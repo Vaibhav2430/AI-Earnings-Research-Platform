@@ -1,0 +1,178 @@
+{
+  "evaluated_at": "2026-10-26T20:55:17.184181+00:00",
+  "description": "Small development smoke suite. Source-backed expected excerpts, not exhaustive relevance labels or a held-out benchmark.",
+  "corpora": {
+    "AAPL": "d4b9dcd05516bec235934b6857a35f0d04d4fa92a95c179c49d3115bdd85c1a1",
+    "MSFT": "0f41fe342199c9a55d9bf646bf049f361585db52ae281d394fcd97c05d6217b6"
+  },
+  "passed": 8,
+  "total": 8,
+  "cases": [
+    {
+      "id": "aapl-iphone",
+      "passed": true,
+      "retrieved_expected": true,
+      "candidate_expected": true,
+      "answered_expected": true,
+      "question": "What drove iPhone revenue growth?",
+      "period_end": "2026-06-27",
+      "status": "answered",
+      "model": "mlx-community/Qwen2.5-1.5B-Instruct-4bit",
+      "model_revision": "8b403126fc14f14cfc99bb4cfa72ecbc129ea677",
+      "claims": [
+        {
+          "text": "iPhone net sales increased during the third quarter and first nine months of 2026 compared to the same periods in 2025 primarily due to higher net sales of Pro models.",
+          "source_ids": [
+            "P3"
+          ]
+        }
+      ],
+      "citations": {
+        "P3": "https://www.sec.gov/Archives/edgar/data/320193/000032019326000020/aapl-20260627.htm"
+      }
+    },
+    {
+      "id": "aapl-services",
+      "passed": true,
+      "retrieved_expected": true,
+      "candidate_expected": true,
+      "answered_expected": true,
+      "question": "What drove Services revenue growth?",
+      "period_end": "2026-06-27",
+      "status": "answered",
+      "model": "mlx-community/Qwen2.5-1.5B-Instruct-4bit",
+      "model_revision": "8b403126fc14f14cfc99bb4cfa72ecbc129ea677",
+      "claims": [
+        {
+          "text": "Services net sales increased during the third quarter and first nine months of 2026 compared to the same periods in 2025 primarily due to higher net sales from advertising and cloud services.",
+          "source_ids": [
+            "P2"
+          ]
+        }
+      ],
+      "citations": {
+        "P2": "https://www.sec.gov/Archives/edgar/data/320193/000032019326000020/aapl-20260627.htm"
+      }
+    },
+    {
+      "id": "aapl-tariffs",
+      "passed": true,
+      "retrieved_expected": true,
+      "candidate_expected": true,
+      "answered_expected": true,
+      "question": "How could tariffs affect the business?",
+      "period_end": "2026-06-27",
+      "status": "answered",
+      "model": "mlx-community/Qwen2.5-1.5B-Instruct-4bit",
+      "model_revision": "8b403126fc14f14cfc99bb4cfa72ecbc129ea677",
+      "claims": [
+        {
+          "text": "Tariffs and other measures that are applied to the Company\u2019s products or their components can have a material adverse impact on the Company\u2019s business, results of operations and financial condition, including impacting the Company\u2019s supply chain, the availability of rare earths and other raw materials and components, pricing and gross margin.",
+          "source_ids": [
+            "P1"
+          ]
+        }
+      ],
+      "citations": {
+        "P1": "https://www.sec.gov/Archives/edgar/data/320193/000032019326000020/aapl-20260627.htm"
+      }
+    },
+    {
+      "id": "msft-cloud",
+      "passed": true,
+      "retrieved_expected": true,
+      "candidate_expected": true,
+      "answered_expected": true,
+      "question": "What drove Intelligent Cloud revenue growth?",
+      "period_end": "2026-03-31",
+      "status": "answered",
+      "model": "mlx-community/Qwen2.5-1.5B-Instruct-4bit",
+      "model_revision": "8b403126fc14f14cfc99bb4cfa72ecbc129ea677",
+      "claims": [
+        {
+          "text": "Intelligent Cloud revenue increased driven by Azure.",
+          "source_ids": [
+            "P3"
+          ]
+        }
+      ],
+      "citations": {
+        "P3": "https://www.sec.gov/Archives/edgar/data/789019/000119312526191507/msft-20260331.htm"
+      }
+    },
+    {
+      "id": "msft-azure",
+      "passed": true,
+      "retrieved_expected": true,
+      "candidate_expected": true,
+      "answered_expected": true,
+      "question": "What drove Azure revenue growth?",
+      "period_end": "2026-03-31",
+      "status": "answered",
+      "model": "mlx-community/Qwen2.5-1.5B-Instruct-4bit",
+      "model_revision": "8b403126fc14f14cfc99bb4cfa72ecbc129ea677",
+      "claims": [
+        {
+          "text": "Azure and other cloud services revenue grew 40% driven by demand for services across the platform with continued growth across all workloads.",
+          "source_ids": [
+            "P1"
+          ]
+        }
+      ],
+      "citations": {
+        "P1": "https://www.sec.gov/Archives/edgar/data/789019/000119312526191507/msft-20260331.htm"
+      }
+    },
+    {
+      "id": "msft-security",
+      "passed": true,
+      "retrieved_expected": true,
+      "candidate_expected": true,
+      "answered_expected": true,
+      "question": "What risks do cyberattacks pose?",
+      "period_end": "2026-03-31",
+      "status": "answered",
+      "model": "mlx-community/Qwen2.5-1.5B-Instruct-4bit",
+      "model_revision": "8b403126fc14f14cfc99bb4cfa72ecbc129ea677",
+      "claims": [
+        {
+          "text": "Cyberattacks and security vulnerabilities could lead to reduced revenue, increased costs, liability claims, or harm to our reputation or competitive position.",
+          "source_ids": [
+            "P1"
+          ]
+        }
+      ],
+      "citations": {
+        "P1": "https://www.sec.gov/Archives/edgar/data/789019/000119312526191507/msft-20260331.htm"
+      }
+    },
+    {
+      "id": "aapl-unknown",
+      "passed": true,
+      "retrieved_expected": null,
+      "candidate_expected": null,
+      "answered_expected": null,
+      "question": "What is the CEO\u2019s shoe size?",
+      "period_end": "2026-06-27",
+      "status": "insufficient_evidence",
+      "model": "mlx-community/Qwen2.5-1.5B-Instruct-4bit",
+      "model_revision": null,
+      "claims": [],
+      "citations": {}
+    },
+    {
+      "id": "msft-unknown",
+      "passed": true,
+      "retrieved_expected": null,
+      "candidate_expected": null,
+      "answered_expected": null,
+      "question": "What was revenue from lunar mining?",
+      "period_end": "2026-03-31",
+      "status": "insufficient_evidence",
+      "model": "mlx-community/Qwen2.5-1.5B-Instruct-4bit",
+      "model_revision": null,
+      "claims": [],
+      "citations": {}
+    }
+  ]
+}

@@ -276,3 +276,35 @@ Current limits:
 - Release statement matching does not validate every number in an earnings release. Unsupported date formats remain unknown.
 - Period findings are saved in the summary rather than rewriting the collection manifest, chunks, or search index. Existing retrieval period filters therefore keep their original metadata.
 - Exit code `0` means at least one validated filing summary was saved, even if individual metrics are unavailable. `2` means no filing could be validated; `1` means an operational failure. Read the JSON status fields for coverage.
+
+## Generate cited answers locally
+
+The first answer generator uses `mlx-community/Qwen2.5-1.5B-Instruct-4bit` with MLX on an Apple Silicon Mac. It runs locally without paid API calls. The compact model fits the intended 8 GB Mac development setup, although speed and available memory depend on other running apps. This runtime is not currently supported on Intel Macs, Windows, or Linux.
+
+```sh
+source .venv/bin/activate
+python -m pip install -e ".[generation]"
+python -m earnings_collector.answers download-model
+python -m earnings_collector.answers ask AAPL "What was revenue and diluted EPS?"
+python -m earnings_collector.answers ask AAPL "What drove iPhone sales growth?" --period-end 2026-06-27
+```
+
+The explicit download command retrieves quantized model weights from Hugging Face and records their revision in `data/.language-model/model-lock.json`. Subsequent inference loads that exact snapshot offline. There is no hosted fallback. Model files and the lock remain ignored under `data/`. Repeating the download command intentionally selects the currently published revision.
+
+Before asking a question, collect, chunk, index, and run financials for that company. The answer command recomputes validated metrics from local source files, retrieves period-filtered passages, and gives both to the model. It does not fetch missing documents automatically. By default it selects the latest validated quarterly filing in your saved collection, which may not be the company's latest published quarter. Use `--period-type annual` for an annual report and `--period-end YYYY-MM-DD` for an exact date. The period is always printed. Natural-language period references are not automatically resolved; set the flags explicitly.
+
+The command returns up to three cited source extracts selected by the model. Narrow current-value questions such as "What was revenue and diluted EPS?" are answered directly from validated metrics; JSON labels this path `validated_metrics` and does not claim a model generated it. Narrative claims must copy evidence text exactly; metric claims copy readable statements prepared by Python. Free-form paraphrasing is deliberately withheld because the small model confused causes in an early live test. Add `--json` for the complete evidence bundle, including metrics, passage locations, source URLs, and warnings. Use `--top-k 1` through `5` to control retrieved passages; the default is 3. Oversized prompts are rejected rather than silently truncated. Missing evidence, a model abstention, or invalid generated output produces no answer and exit code `2`; operational failures use `1`; a structurally valid answer uses `0`.
+
+Guardrails and current limits:
+
+- The model selects sentence identifiers rather than composing financial prose. A conservative query-term overlap check rejects clearly unrelated choices, but may reject valid paraphrased queries too. Table rows are excluded from narrative sentence choices; structured metrics handle supported numerical questions.
+- Every claim must cite supplied evidence IDs and match an exact substring of cited evidence, allowing only whitespace differences. Unknown citations and unsupported paraphrases are rejected. One corrective generation is allowed; if validation still fails, the answer is withheld.
+- Numeric strings in claims must occur in their cited evidence. The model is instructed to preserve base units and avoid new calculations, rounding, and unit conversions.
+- Exact matching establishes text provenance, not relevance or completeness. A source extract can still be selected out of context. Review citations before relying on an answer.
+- Retrieved source text is treated as evidence, not executable instructions. The generator has no tools, shell, or browsing access.
+- Unanswerable questions are tested, but a small model may still overclaim or abstain on answerable questions. This is a extractive RAG prototype, not a free-form financial report writer.
+- Period filtering currently excludes earnings exhibits with unknown period metadata. The answer generator uses validated filings and does not silently mix annual and quarterly sources.
+
+References: [Qwen model card](https://huggingface.co/mlx-community/Qwen2.5-1.5B-Instruct-4bit), [MLX LM](https://github.com/ml-explore/mlx-lm).
+
+Local smoke checks used network connections blocked at the socket level. The model selected the cited iPhone Pro-model growth explanation and abstained on a CEO shoe-size question. Simple revenue/EPS questions use validated metrics after the small model inconsistently abstained on them. These are development smoke checks, not a broad answer-quality benchmark.
